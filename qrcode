@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Premium QR Generator</title>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+* {
+  box-sizing: border-box;
+  font-family: 'Pretendard', sans-serif;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.card {
+  width: 100%;
+  max-width: 520px;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 35px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  animation: fadeIn 0.8s ease;
+}
+
+h1 {
+  margin-top: 0;
+  font-size: 26px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+label {
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 15px;
+  display: block;
+}
+
+input[type="text"],
+input[type="file"],
+input[type="color"] {
+  width: 100%;
+  padding: 12px;
+  margin-top: 8px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  transition: 0.2s;
+}
+
+input:focus {
+  border-color: #667eea;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(102,126,234,0.2);
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  margin-top: 18px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.generate-btn {
+  background: linear-gradient(135deg,#667eea,#764ba2);
+  color: white;
+}
+
+.generate-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+.download-btn {
+  background: #f1f1f1;
+}
+
+.download-btn:hover {
+  background: #e2e2e2;
+}
+
+.canvas-wrapper {
+  margin-top: 25px;
+  display: flex;
+  justify-content: center;
+}
+
+canvas {
+  border-radius: 15px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+}
+
+@keyframes fadeIn {
+  from {opacity:0; transform: translateY(10px);}
+  to {opacity:1; transform: translateY(0);}
+}
+
+@media (max-width: 500px) {
+  .card {
+    margin: 20px;
+    padding: 25px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+<h1>QR Code Generator</h1>
+
+<label>URL</label>
+<input type="text" id="urlInput" placeholder="https://example.com">
+
+<label>QR Color</label>
+<input type="color" id="qrColor" value="#000000">
+
+<label>Logo</label>
+<input type="file" id="logoInput" accept="image/*">
+
+<button class="generate-btn" onclick="generateQR()">Generate QR</button>
+<button class="download-btn" onclick="downloadQR()">Download</button>
+
+<div class="canvas-wrapper">
+<canvas id="qrCanvas"></canvas>
+</div>
+</div>
+
+<script>
+let logoImg = null;
+
+document.getElementById("logoInput").addEventListener("change", function(e){
+    const file = e.target.files[0];
+    if (!file) return;
+    const img = new Image();
+    img.src = URL.createObjectURL(file);
+    img.onload = () => logoImg = img;
+});
+
+async function generateQR() {
+    const url = document.getElementById("urlInput").value;
+    const color = document.getElementById("qrColor").value;
+    const canvas = document.getElementById("qrCanvas");
+
+    if (!url) {
+        alert("URL을 입력하세요");
+        return;
+    }
+
+    await QRCode.toCanvas(canvas, url, {
+        width: 380,
+        errorCorrectionLevel: "H",
+        color: {
+            dark: color,
+            light: "#ffffff"
+        }
+    });
+
+    if (logoImg) {
+        const ctx = canvas.getContext("2d");
+        const logoSize = canvas.width / 4;
+        const x = (canvas.width - logoSize) / 2;
+        const y = (canvas.height - logoSize) / 2;
+
+        ctx.fillStyle = "white";
+        ctx.fillRect(x - 10, y - 10, logoSize + 20, logoSize + 20);
+        ctx.drawImage(logoImg, x, y, logoSize, logoSize);
+    }
+}
+
+function downloadQR() {
+    const canvas = document.getElementById("qrCanvas");
+    if (!canvas.width) return alert("먼저 QR을 생성하세요.");
+
+    const link = document.createElement("a");
+    link.download = "premium_qr.png";
+    link.href = canvas.toDataURL();
+    link.click();
+}
+</script>
+
+</body>
+</html>
